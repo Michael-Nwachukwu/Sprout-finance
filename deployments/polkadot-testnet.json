@@ -1,0 +1,18 @@
+{
+  "network": "polkadot-testnet",
+  "chainId": "420420417",
+  "rpcUrl": "https://eth-rpc-testnet.polkadot.io/",
+  "contracts": {
+    "FXOracle": "0xE9b224bE25B2823250f4545709A11e8ebAC18b34",
+    "InvoiceNFT": "0x4d0884D03f2fA409370D0F97c6AbC4dA4A8F03d6",
+    "LendingPool": "0x9f3eB17a20a4E57Ed126F34061b0E40dF3a4f5C2",
+    "InsurancePool": "0x12ccF0F4A22454d53aBdA56a796a08e93E947256",
+    "CreditScoreRegistry": "0xfBF2a9f8ffab5a8ED186151d9CFa360911Abd6Fd",
+    "USDC": "0x2C0457F82B57148e8363b4589bb3294b23AE7625"
+  },
+  "acurast": {
+    "processorAddress": "0x7FBbE68068A3Aa7E479A1E51e792F4C2073b018f",
+    "fxOracleDeploymentId": "TO_BE_FILLED_ON_DEPLOY",
+    "riskEngineDeploymentId": "TO_BE_FILLED_ON_DEPLOY"
+  }
+}
