@@ -1,0 +1,62 @@
+{
+  "deployedAt": "2026-03-15T14:00:11.991Z",
+  "assignments": [],
+  "status": "init",
+  "config": {
+    "projectName": "sprout-fx-oracle",
+    "fileUrl": "dist/bundle.js",
+    "network": "canary",
+    "onlyAttestedDevices": true,
+    "assignmentStrategy": {
+      "type": "Single"
+    },
+    "execution": {
+      "type": "interval",
+      "intervalInMs": 300000,
+      "numberOfExecutions": 60
+    },
+    "maxAllowedStartDelayInMs": 60000,
+    "usageLimit": {
+      "maxMemory": 0,
+      "maxNetworkRequests": 0,
+      "maxStorage": 0
+    },
+    "numberOfReplicas": 1,
+    "requiredModules": [],
+    "minProcessorReputation": 0,
+    "maxCostPerExecution": 33000000000,
+    "includeEnvironmentVariables": [
+      "FX_API_KEY",
+      "HUB_RPC",
+      "ORACLE_CONTRACT"
+    ],
+    "processorWhitelist": []
+  },
+  "registration": {
+    "script": "ipfs://QmPjSMe5XQv5a5txZoe8CR7LcYV1R5gZL4zPYZhmdLx4bq",
+    "allowOnlyVerifiedSources": true,
+    "schedule": {
+      "duration": 289999,
+      "startTime": 1773583511991,
+      "endTime": 1773601511992,
+      "interval": 300000,
+      "maxStartDelay": 60000
+    },
+    "memory": 0,
+    "networkRequests": 0,
+    "storage": 0,
+    "requiredModules": [],
+    "mutability": "Immutable",
+    "extra": {
+      "requirements": {
+        "assignmentStrategy": {
+          "variant": "Single"
+        },
+        "slots": 1,
+        "reward": 33000000000,
+        "minReputation": 0,
+        "runtime": "NodeJSWithBundle"
+      }
+    }
+  }
+}

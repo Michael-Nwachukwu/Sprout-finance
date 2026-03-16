@@ -2,3 +2,15 @@ CLAUDE.md
 SKILL.md
 sprout_V0_Brief.docx
 sprout-finance.docx
+.env.local
+.env
+.env.development.local
+.env.test.local
+.env.production.local
+.env.development
+.env.test
+.env.production
+node_modules
+/contracts/out
+/contracts/cache
+/contracts/lib

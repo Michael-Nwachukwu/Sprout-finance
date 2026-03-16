@@ -1,0 +1,15 @@
+{
+  "name": "sprout-fx-oracle",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "bundle": "webpack --config webpack.config.js",
+    "build": "tsc --noEmit && npm run bundle"
+  },
+  "devDependencies": {
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.3.3",
+    "webpack": "^5.90.0",
+    "webpack-cli": "^5.1.4"
+  }
+}

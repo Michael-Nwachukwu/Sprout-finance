@@ -1,0 +1,81 @@
+2026-03-15T11:21:48.958Z - DEBUG - --------------------------------
+2026-03-15T11:21:48.961Z - DEBUG - CLI is running version 0.5.0
+2026-03-15T11:21:48.961Z - DEBUG - COMMAND: acurast deploy
+2026-03-15T11:21:49.797Z - ERROR - Deploy env vars are invalid "\"ACURAST_MNEMONIC\" is not defined in the environment."
+2026-03-15T11:29:53.922Z - DEBUG - --------------------------------
+2026-03-15T11:29:53.923Z - DEBUG - CLI is running version 0.5.0
+2026-03-15T11:29:53.923Z - DEBUG - COMMAND: acurast init
+2026-03-15T11:32:12.592Z - DEBUG - --------------------------------
+2026-03-15T11:32:12.593Z - DEBUG - CLI is running version 0.5.0
+2026-03-15T11:32:12.593Z - DEBUG - COMMAND: acurast deploy
+2026-03-15T11:32:13.256Z - ERROR - Project env vars are invalid "\"HUB_RPC\" is not defined in the environment."
+2026-03-15T11:34:39.248Z - DEBUG - --------------------------------
+2026-03-15T11:34:39.249Z - DEBUG - CLI is running version 0.5.0
+2026-03-15T11:34:39.249Z - DEBUG - COMMAND: acurast deploy
+2026-03-15T11:34:39.842Z - ERROR - Project env vars are invalid "\"HUB_RPC\" is not defined in the environment."
+2026-03-15T13:53:38.142Z - DEBUG - --------------------------------
+2026-03-15T13:53:38.143Z - DEBUG - CLI is running version 0.5.0
+2026-03-15T13:53:38.143Z - DEBUG - COMMAND: acurast deploy
+2026-03-15T13:53:59.495Z - DEBUG - Balance: 10 cACU
+2026-03-15T13:53:59.496Z - DEBUG - Start time: 1773583139496
+2026-03-15T13:53:59.520Z - DEBUG - The deployment will be scheduled to start in 5 minutes 0 seconds. (3/15/2026, 2:58:59 PM) It will run for 1 month.
+2026-03-15T13:53:59.522Z - DEBUG - 🚀 Deploying...
+2026-03-15T13:54:58.073Z - DEBUG - config.fileUrl is not an IPFS hash, so we zip it: dist/bundle.js
+2026-03-15T13:54:58.077Z - DEBUG - zipPath: .acurast/bundles/sprout-fx-oracle.zip
+2026-03-15T13:54:58.079Z - LOG - zipPath .acurast/bundles/sprout-fx-oracle.zip
+2026-03-15T13:55:00.315Z - DEBUG - ipfsHash: ipfs://QmPjSMe5XQv5a5txZoe8CR7LcYV1R5gZL4zPYZhmdLx4bq
+2026-03-15T13:59:14.068Z - DEBUG - --------------------------------
+2026-03-15T13:59:14.070Z - DEBUG - CLI is running version 0.5.0
+2026-03-15T13:59:14.070Z - DEBUG - COMMAND: acurast deploy
+2026-03-15T13:59:17.756Z - DEBUG - Balance: 1.356577 cACU
+2026-03-15T13:59:17.758Z - DEBUG - Start time: 1773583457758
+2026-03-15T13:59:17.766Z - DEBUG - The deployment will be scheduled to start in 5 minutes 0 seconds. (3/15/2026, 3:04:17 PM) It will run for 1 month.
+2026-03-15T13:59:17.768Z - DEBUG - 🚀 Deploying...
+2026-03-15T13:59:19.776Z - DEBUG - config.fileUrl is not an IPFS hash, so we zip it: dist/bundle.js
+2026-03-15T13:59:19.778Z - DEBUG - zipPath: .acurast/bundles/sprout-fx-oracle.zip
+2026-03-15T13:59:19.779Z - LOG - zipPath .acurast/bundles/sprout-fx-oracle.zip
+2026-03-15T13:59:21.735Z - DEBUG - ipfsHash: ipfs://QmPjSMe5XQv5a5txZoe8CR7LcYV1R5gZL4zPYZhmdLx4bq
+2026-03-15T14:00:07.816Z - DEBUG - --------------------------------
+2026-03-15T14:00:07.817Z - DEBUG - CLI is running version 0.5.0
+2026-03-15T14:00:07.817Z - DEBUG - COMMAND: acurast deploy
+2026-03-15T14:00:11.978Z - DEBUG - Balance: 1.354155 cACU
+2026-03-15T14:00:11.979Z - DEBUG - Start time: 1773583511979
+2026-03-15T14:00:11.988Z - DEBUG - The deployment will be scheduled to start in 5 minutes 0 seconds. (3/15/2026, 3:05:11 PM) It will run for 5 hours.
+2026-03-15T14:00:11.991Z - DEBUG - 🚀 Deploying...
+2026-03-15T14:00:13.813Z - DEBUG - config.fileUrl is not an IPFS hash, so we zip it: dist/bundle.js
+2026-03-15T14:00:13.815Z - DEBUG - zipPath: .acurast/bundles/sprout-fx-oracle.zip
+2026-03-15T14:00:13.817Z - LOG - zipPath .acurast/bundles/sprout-fx-oracle.zip
+2026-03-15T14:00:15.736Z - DEBUG - ipfsHash: ipfs://QmPjSMe5XQv5a5txZoe8CR7LcYV1R5gZL4zPYZhmdLx4bq
+2026-03-15T14:01:39.900Z - DEBUG - --------------------------------
+2026-03-15T14:01:39.901Z - DEBUG - CLI is running version 0.5.0
+2026-03-15T14:01:39.901Z - DEBUG - COMMAND: acurast --help
+2026-03-15T14:01:52.332Z - DEBUG - --------------------------------
+2026-03-15T14:01:52.333Z - DEBUG - CLI is running version 0.5.0
+2026-03-15T14:01:52.333Z - DEBUG - COMMAND: acurast deployments --help
+2026-03-15T14:02:15.382Z - DEBUG - --------------------------------
+2026-03-15T14:02:15.383Z - DEBUG - CLI is running version 0.5.0
+2026-03-15T14:02:15.384Z - DEBUG - COMMAND: acurast deployments --cleanup
+2026-03-15T14:05:05.469Z - DEBUG - --------------------------------
+2026-03-15T14:05:05.471Z - DEBUG - CLI is running version 0.5.0
+2026-03-15T14:05:05.471Z - DEBUG - COMMAND: acurast deployments ls
+2026-03-15T14:06:24.599Z - DEBUG - --------------------------------
+2026-03-15T14:06:24.600Z - DEBUG - CLI is running version 0.5.0
+2026-03-15T14:06:24.600Z - DEBUG - COMMAND: acurast deployments ls
+2026-03-15T16:58:27.465Z - DEBUG - --------------------------------
+2026-03-15T16:58:27.466Z - DEBUG - CLI is running version 0.5.0
+2026-03-15T16:58:27.466Z - DEBUG - COMMAND: acurast deploy
+2026-03-15T16:58:30.771Z - DEBUG - Balance: 9.991501 cACU
+2026-03-15T16:58:30.772Z - DEBUG - Start time: 1773594210772
+2026-03-15T16:58:30.799Z - DEBUG - The deployment will be scheduled to start in 5 minutes 0 seconds. (3/15/2026, 6:03:30 PM) It will run for 5 hours.
+2026-03-15T16:58:30.801Z - DEBUG - 🚀 Deploying...
+2026-03-15T16:58:32.639Z - DEBUG - config.fileUrl is not an IPFS hash, so we zip it: dist/bundle.js
+2026-03-15T16:58:32.641Z - DEBUG - zipPath: .acurast/bundles/sprout-fx-oracle.zip
+2026-03-15T16:58:32.643Z - LOG - zipPath .acurast/bundles/sprout-fx-oracle.zip
+2026-03-15T16:58:34.981Z - DEBUG - ipfsHash: ipfs://QmVVcPU65LTrNS9vy79neXt4SV3K8mNeS9A2nwPMAeEkn7
+2026-03-15T16:59:45.150Z - [370437] INFO - Waiting for processor acknowledgements: 1 expected
+2026-03-15T16:59:48.829Z - [370437] DEBUG - Setting Environment Variables: Have all acknowledgements, so we can set the env vars now.
+2026-03-15T16:59:48.830Z - [370437] DEBUG - Setting Environment Variables: Preparing transaction
+2026-03-15T16:59:48.836Z - [370437] INFO - Acknowledged by 1/1
+2026-03-15T17:14:31.666Z - DEBUG - --------------------------------
+2026-03-15T17:14:31.667Z - DEBUG - CLI is running version 0.5.0
+2026-03-15T17:14:31.667Z - DEBUG - COMMAND: acurast deployments 370437 --update-env-vars
