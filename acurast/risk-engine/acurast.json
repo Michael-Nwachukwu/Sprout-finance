@@ -1,0 +1,40 @@
+{
+  "projects": {
+    "sprout-risk-engine": {
+      "projectName": "sprout-risk-engine",
+      "fileUrl": "dist/bundle.js",
+      "network": "canary",
+      "onlyAttestedDevices": true,
+      "assignmentStrategy": {
+        "type": "Single"
+      },
+      "execution": {
+        "type": "onetime",
+        "maxExecutionTimeInMs": 120000
+      },
+      "maxAllowedStartDelayInMs": 10000,
+      "usageLimit": {
+        "maxMemory": 0,
+        "maxNetworkRequests": 0,
+        "maxStorage": 0
+      },
+      "numberOfReplicas": 1,
+      "requiredModules": [],
+      "minProcessorReputation": 0,
+      "maxCostPerExecution": 5000000000,
+      "includeEnvironmentVariables": [
+        "TOKEN_ID",
+        "QB_REALM_ID",
+        "QB_INVOICE_ID",
+        "QB_ACCESS_TOKEN",
+        "CURRENCY",
+        "DAYS_TO_MATURITY",
+        "DEBTOR_SCORE",
+        "BORROWER_SCORE",
+        "NFT_CONTRACT",
+        "HUB_RPC"
+      ],
+      "processorWhitelist": []
+    }
+  }
+}
