@@ -1,0 +1,20 @@
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+test = "test"
+script = "script"
+solc = "0.8.20"
+optimizer = true
+optimizer_runs = 200
+via_ir = true
+remappings = [
+    "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
+    "forge-std/=lib/forge-std/src/"
+]
+
+[rpc_endpoints]
+polkadot_testnet = "${POLKADOT_TESTNET_RPC}"
+
+[etherscan]
+polkadot_testnet = { key = "${ETHERSCAN_API_KEY}", chain = "polkadot-testnet" }
