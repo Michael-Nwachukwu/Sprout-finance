@@ -1,0 +1,18 @@
+{
+  "network": "westend-hub",
+  "chainId": "420420421",
+  "rpcUrl": "https://westend-asset-hub-eth-rpc.polkadot.io",
+  "contracts": {
+    "FXOracle": "TO_BE_FILLED_ON_DEPLOY",
+    "InvoiceNFT": "TO_BE_FILLED_ON_DEPLOY",
+    "LendingPool": "TO_BE_FILLED_ON_DEPLOY",
+    "InsurancePool": "TO_BE_FILLED_ON_DEPLOY",
+    "CreditScoreRegistry": "TO_BE_FILLED_ON_DEPLOY",
+    "USDC": "TO_BE_FILLED_ON_DEPLOY"
+  },
+  "acurast": {
+    "processorAddress": "TO_BE_FILLED_ON_DEPLOY",
+    "fxOracleDeploymentId": "TO_BE_FILLED_ON_DEPLOY",
+    "riskEngineDeploymentId": "TO_BE_FILLED_ON_DEPLOY"
+  }
+}

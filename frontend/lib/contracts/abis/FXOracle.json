@@ -1,0 +1,68 @@
+[
+  {
+    "type": "constructor",
+    "inputs": [{ "name": "_acurastProcessor", "type": "address" }],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "acurastProcessor",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "address" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getRate",
+    "inputs": [{ "name": "currency", "type": "bytes3" }],
+    "outputs": [{ "name": "", "type": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "lastUpdated",
+    "inputs": [{ "name": "", "type": "bytes3" }],
+    "outputs": [{ "name": "", "type": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "owner",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "address" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "rates",
+    "inputs": [{ "name": "", "type": "bytes3" }],
+    "outputs": [{ "name": "", "type": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "setProcessor",
+    "inputs": [{ "name": "_processor", "type": "address" }],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "updateRates",
+    "inputs": [
+      { "name": "currencies", "type": "bytes3[]" },
+      { "name": "_rates", "type": "uint256[]" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "event",
+    "name": "RatesUpdated",
+    "inputs": [
+      { "name": "currencies", "type": "bytes3[]", "indexed": false },
+      { "name": "rates_", "type": "uint256[]", "indexed": false },
+      { "name": "timestamp", "type": "uint256", "indexed": false }
+    ]
+  }
+]

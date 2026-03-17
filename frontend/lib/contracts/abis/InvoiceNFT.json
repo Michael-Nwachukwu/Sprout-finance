@@ -1,0 +1,156 @@
+[
+  {
+    "type": "constructor",
+    "inputs": [{ "name": "_acurastProcessor", "type": "address" }],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "requestMint",
+    "inputs": [
+      {
+        "name": "data",
+        "type": "tuple",
+        "components": [
+          { "name": "tokenId", "type": "uint256" },
+          { "name": "borrower", "type": "address" },
+          { "name": "invoiceHash", "type": "bytes32" },
+          { "name": "faceValueUSD", "type": "uint256" },
+          { "name": "faceValueOriginal", "type": "uint256" },
+          { "name": "originalCurrency", "type": "bytes3" },
+          { "name": "dueDate", "type": "uint256" },
+          { "name": "issuedDate", "type": "uint256" },
+          { "name": "debtorHash", "type": "bytes32" },
+          { "name": "qbInvoiceId", "type": "string" },
+          { "name": "qbRealmId", "type": "string" },
+          { "name": "discountRateBps", "type": "uint16" },
+          { "name": "riskTier", "type": "uint8" },
+          { "name": "maxLtvBps", "type": "uint16" },
+          { "name": "isCollateralized", "type": "bool" },
+          { "name": "isRepaid", "type": "bool" },
+          { "name": "ipfsCID", "type": "string" },
+          { "name": "legalAssignmentHash", "type": "bytes32" }
+        ]
+      }
+    ],
+    "outputs": [{ "name": "pendingTokenId", "type": "uint256" }],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "fulfillRisk",
+    "inputs": [
+      { "name": "tokenId", "type": "uint256" },
+      { "name": "discountRateBps", "type": "uint16" },
+      { "name": "riskTier", "type": "uint8" },
+      { "name": "maxLtvBps", "type": "uint16" },
+      { "name": "signature", "type": "bytes" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "burn",
+    "inputs": [{ "name": "tokenId", "type": "uint256" }],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "getInvoice",
+    "inputs": [{ "name": "tokenId", "type": "uint256" }],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "components": [
+          { "name": "tokenId", "type": "uint256" },
+          { "name": "borrower", "type": "address" },
+          { "name": "invoiceHash", "type": "bytes32" },
+          { "name": "faceValueUSD", "type": "uint256" },
+          { "name": "faceValueOriginal", "type": "uint256" },
+          { "name": "originalCurrency", "type": "bytes3" },
+          { "name": "dueDate", "type": "uint256" },
+          { "name": "issuedDate", "type": "uint256" },
+          { "name": "debtorHash", "type": "bytes32" },
+          { "name": "qbInvoiceId", "type": "string" },
+          { "name": "qbRealmId", "type": "string" },
+          { "name": "discountRateBps", "type": "uint16" },
+          { "name": "riskTier", "type": "uint8" },
+          { "name": "maxLtvBps", "type": "uint16" },
+          { "name": "isCollateralized", "type": "bool" },
+          { "name": "isRepaid", "type": "bool" },
+          { "name": "ipfsCID", "type": "string" },
+          { "name": "legalAssignmentHash", "type": "bytes32" }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "setLendingPool",
+    "inputs": [{ "name": "_lendingPool", "type": "address" }],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setProcessor",
+    "inputs": [{ "name": "_processor", "type": "address" }],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "balanceOf",
+    "inputs": [{ "name": "owner", "type": "address" }],
+    "outputs": [{ "name": "", "type": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "ownerOf",
+    "inputs": [{ "name": "tokenId", "type": "uint256" }],
+    "outputs": [{ "name": "", "type": "address" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "approve",
+    "inputs": [
+      { "name": "to", "type": "address" },
+      { "name": "tokenId", "type": "uint256" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "getApproved",
+    "inputs": [{ "name": "tokenId", "type": "uint256" }],
+    "outputs": [{ "name": "", "type": "address" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "event",
+    "name": "MintRequested",
+    "inputs": [
+      { "name": "tokenId", "type": "uint256", "indexed": true },
+      { "name": "borrower", "type": "address", "indexed": true },
+      { "name": "invoiceHash", "type": "bytes32", "indexed": false }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "InvoiceMinted",
+    "inputs": [
+      { "name": "tokenId", "type": "uint256", "indexed": true },
+      { "name": "borrower", "type": "address", "indexed": true },
+      { "name": "faceValueUSD", "type": "uint256", "indexed": false },
+      { "name": "riskTier", "type": "uint8", "indexed": false },
+      { "name": "discountRateBps", "type": "uint16", "indexed": false }
+    ]
+  }
+]
