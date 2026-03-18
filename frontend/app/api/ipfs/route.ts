@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { snapshotCache } from '@/lib/ipfs/snapshot-cache'
+import { snapshotCache, fileListCache } from '@/lib/ipfs/snapshot-cache'
 import { getW3upClient } from '@/lib/ipfs/w3up-client'
 
 /**
@@ -80,6 +80,9 @@ export async function POST(request: NextRequest) {
           // skip
         }
       }
+
+      // Cache file list for the documents component
+      fileListCache.set(cidStr, files.map((f) => ({ name: f.name })))
 
       console.log(`[ipfs] Uploaded directory (${files.length} files) → CID: ${cidStr}`)
       console.log(`[ipfs] Files: ${files.map((f) => f.name).join(', ')}`)

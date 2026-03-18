@@ -49,6 +49,22 @@ export const snapshotCache = {
   },
 }
 
+// ── File List Cache ────────────────────────────────────────────────────────
+
+const FILE_LIST_FILE = path.join(CACHE_DIR, 'ipfs-file-lists.json')
+
+export const fileListCache = {
+  get(cid: string): { name: string }[] | undefined {
+    const all = readJsonFile(FILE_LIST_FILE)
+    return all[cid]
+  },
+  set(cid: string, files: { name: string }[]) {
+    const all = readJsonFile(FILE_LIST_FILE)
+    all[cid] = files
+    writeJsonFile(FILE_LIST_FILE, all)
+  },
+}
+
 // ── AI Analysis Cache ───────────────────────────────────────────────────────
 
 export const aiAnalysisCache = {
