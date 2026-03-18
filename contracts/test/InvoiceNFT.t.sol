@@ -156,6 +156,17 @@ contract InvoiceNFTTest is Test {
         nft.setProcessor(stranger);
     }
 
+    // ─── requestedAmount ────────────────────────────────────────────────────
+
+    function test_RequestMint_StoresRequestedAmount() public {
+        InvoiceNFT.InvoiceData memory data = _makeInvoiceData(borrower, "INV-REQ");
+        data.requestedAmount = 10000 * 1e18;
+        vm.prank(borrower);
+        uint256 tokenId = nft.requestMint(data);
+        InvoiceNFT.InvoiceData memory stored = nft.getInvoice(tokenId);
+        assertEq(stored.requestedAmount, 10000 * 1e18);
+    }
+
     // ─── Helpers ──────────────────────────────────────────────────────────────
 
     function _makeInvoiceData(address _borrower, string memory qbId)
@@ -181,7 +192,8 @@ contract InvoiceNFTTest is Test {
             isCollateralized: false,
             isRepaid: false,
             ipfsCID: "bafybeig...",
-            legalAssignmentHash: bytes32(0)
+            legalAssignmentHash: bytes32(0),
+            requestedAmount: 0
         });
     }
 

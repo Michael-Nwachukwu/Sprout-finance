@@ -88,11 +88,14 @@ contract LendingPool is Ownable, ReentrancyGuard {
         require(loans[tokenId].borrower == address(0), "LendingPool: loan already exists");
         require(invoice.dueDate > block.timestamp, "LendingPool: invoice already due");
 
-        // maxFundable = faceValueUSD * maxLtvBps / 10000
+        // maxFundable = min(requestedAmount, faceValueUSD * maxLtvBps / 10000)
         // faceValueUSD is 18 decimals; convert to USDC 6 decimals for actual USDC transfers
-        uint256 maxFundableUSD18 = (invoice.faceValueUSD * invoice.maxLtvBps) / BPS_DENOMINATOR;
+        uint256 maxLtvUSD18 = (invoice.faceValueUSD * invoice.maxLtvBps) / BPS_DENOMINATOR;
+        uint256 effectiveUSD18 = invoice.requestedAmount > 0 && invoice.requestedAmount < maxLtvUSD18
+            ? invoice.requestedAmount
+            : maxLtvUSD18;
         // Convert from 18 decimals to 6 decimals (USDC)
-        uint256 maxFundableUSDC = maxFundableUSD18 / 1e12;
+        uint256 maxFundableUSDC = effectiveUSD18 / 1e12;
 
         // Transfer NFT from borrower to this contract
         invoiceNFT.transferFrom(msg.sender, address(this), tokenId);

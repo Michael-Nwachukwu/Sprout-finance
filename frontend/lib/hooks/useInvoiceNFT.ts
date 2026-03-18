@@ -26,6 +26,7 @@ interface RequestMintArgs {
   isRepaid: boolean
   ipfsCID: string
   legalAssignmentHash: `0x${string}`
+  requestedAmount: bigint
 }
 
 export function useRequestMint() {

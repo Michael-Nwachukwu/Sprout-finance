@@ -240,12 +240,19 @@ export function AIRiskSummary({ invoiceData, tokenId, supportingDocs }: AIRiskSu
         </div>
       )}
 
-      {/* Rerun button */}
-      <div className="flex justify-end">
-        <Button onClick={runAnalysis} variant="ghost" size="sm" className="text-xs text-muted-foreground">
-          <Brain className="w-3 h-3 mr-1" />
-          Re-analyze
-        </Button>
+      {/* Cache indicator + rerun button */}
+      <div className="flex items-center justify-between">
+        {isCached && (
+          <span className="text-[10px] text-muted-foreground italic">
+            Cached from minting — verified with uploaded documents
+          </span>
+        )}
+        <div className="ml-auto">
+          <Button onClick={runAnalysis} variant="ghost" size="sm" className="text-xs text-muted-foreground">
+            <Brain className="w-3 h-3 mr-1" />
+            Re-analyze
+          </Button>
+        </div>
       </div>
     </Card>
   )

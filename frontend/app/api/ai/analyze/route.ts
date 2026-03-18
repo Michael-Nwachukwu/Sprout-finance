@@ -74,6 +74,9 @@ Respond in STRICT JSON format (no markdown, no code fences) with this exact stru
 IMPORTANT CONTEXT about this platform:
 - This is an invoice financing platform for emerging markets. Invoices are issued in LOCAL currencies (KES, NGN, PHP, BRL, etc.) but the "Face Value (USD)" shown is the USD-equivalent amount for financing purposes, converted at market exchange rates. This dual-currency presentation is NORMAL and expected — it is NOT a currency mismatch or inconsistency.
 - The invoice total in local currency and the USD equivalent should be roughly consistent with prevailing exchange rates.
+- The "Invoice Data" above is the AUTHORITATIVE invoice record — it was fetched directly from the borrower's QuickBooks accounting system via authenticated API, NOT from a user-uploaded PDF. There is no separate invoice PDF to verify because the data comes from the accounting software itself. Do NOT penalize for "missing invoice document" — the structured data IS the invoice.
+- The legal assignment for this invoice is signed digitally using World ID zero-knowledge proof (providing KYC/Sybil-resistance), not as a PDF upload. Do NOT flag its absence.
+- Supporting documents (Purchase Order, Bill of Lading) are the primary items to cross-reference against the invoice data.
 - Delivery notes / Bills of Lading may show "Pending" receipt status if goods are in transit — this is normal for pre-shipment or in-transit invoice financing and should NOT be treated as a fraud indicator.
 - Logistics / freight charges appearing on an invoice but not on the PO is common in trade finance — the PO covers goods, while the invoice includes additional delivery costs. This is a minor discrepancy at most, not a rejection-worthy issue.
 - The PO subtotal may differ from the invoice total because the invoice includes VAT/tax and logistics that the PO does not cover.

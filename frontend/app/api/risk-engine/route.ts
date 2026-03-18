@@ -54,6 +54,7 @@ const INVOICE_NFT_ABI = [
           { name: 'isRepaid', type: 'bool' },
           { name: 'ipfsCID', type: 'string' },
           { name: 'legalAssignmentHash', type: 'bytes32' },
+          { name: 'requestedAmount', type: 'uint256' },
         ] as const,
       },
     ] as const,

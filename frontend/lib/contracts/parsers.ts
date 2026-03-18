@@ -40,7 +40,7 @@ export function parseLoan(raw: unknown): OnChainLoan | null {
  * Tuple order: [tokenId, borrower, invoiceHash, faceValueUSD, faceValueOriginal,
  *               originalCurrency, dueDate, issuedDate, debtorHash, qbInvoiceId,
  *               qbRealmId, discountRateBps, riskTier, maxLtvBps, isCollateralized,
- *               isRepaid, ipfsCID, legalAssignmentHash]
+ *               isRepaid, ipfsCID, legalAssignmentHash, requestedAmount]
  */
 export function parseInvoice(raw: unknown): OnChainInvoice | null {
   if (!raw) return null
@@ -65,6 +65,7 @@ export function parseInvoice(raw: unknown): OnChainInvoice | null {
       isRepaid: raw[15] as boolean,
       ipfsCID: raw[16] as string,
       legalAssignmentHash: raw[17] as `0x${string}`,
+      requestedAmount: raw[18] as bigint,
     }
   }
 

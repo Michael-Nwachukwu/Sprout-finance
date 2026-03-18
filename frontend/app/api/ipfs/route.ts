@@ -1,51 +1,98 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createHash } from 'crypto'
 import { snapshotCache } from '@/lib/ipfs/snapshot-cache'
+import { getW3upClient } from '@/lib/ipfs/w3up-client'
 
 /**
  * POST /api/ipfs
- * Uploads to IPFS. Currently returns a deterministic placeholder CID.
- * To enable real IPFS uploads, install @web3-storage/w3up-client and
- * @ucanto/principal/ed25519, set WEB3_STORAGE_KEY + WEB3_STORAGE_PROOF,
- * and uncomment the w3up import block below.
+ * Uploads files to IPFS via web3.storage w3up.
  *
- * Body (application/json): { snapshot: object }
- * Body (multipart/form-data): file field
+ * Mode 1 — application/json: { snapshot: object }
+ *   Uploads snapshot.json as a single file → returns CID
+ *
+ * Mode 2 — multipart/form-data: snapshot (text) + file[] fields
+ *   Uploads as IPFS directory (snapshot.json + all files) → returns directory CID
  */
 export async function POST(request: NextRequest) {
   const contentType = request.headers.get('content-type') ?? ''
 
   try {
     if (contentType.includes('application/json')) {
-      const { snapshot } = await request.json() as { snapshot: object }
-      const cid = placeholderCid(JSON.stringify(snapshot))
-      snapshotCache.set(cid, snapshot as Record<string, unknown>)
-      return NextResponse.json({ cid })
+      const { snapshot } = (await request.json()) as { snapshot: object }
+      const jsonBytes = new TextEncoder().encode(JSON.stringify(snapshot, null, 2))
+      const file = new File([jsonBytes], 'snapshot.json', { type: 'application/json' })
+
+      const client = await getW3upClient()
+      const cid = await client.uploadFile(file)
+      const cidStr = cid.toString()
+
+      // Cache locally for fast reads
+      snapshotCache.set(cidStr, snapshot as Record<string, unknown>)
+      console.log('[ipfs] Uploaded snapshot.json → CID:', cidStr)
+
+      return NextResponse.json({ cid: cidStr })
     }
 
     if (contentType.includes('multipart/form-data')) {
       const formData = await request.formData()
-      const file = formData.get('file') as File | null
-      if (!file) {
-        return NextResponse.json({ error: 'No file provided' }, { status: 400 })
+
+      // Build file list for directory upload
+      const files: File[] = []
+
+      // Add snapshot.json from the "snapshot" text field
+      const snapshotText = formData.get('snapshot') as string | null
+      if (snapshotText) {
+        const jsonBytes = new TextEncoder().encode(snapshotText)
+        files.push(new File([jsonBytes], 'snapshot.json', { type: 'application/json' }))
+
+        // Cache snapshot locally
+        try {
+          const parsed = JSON.parse(snapshotText)
+          // We'll set the cache after we have the CID
+          // Store parsed for later
+          Object.defineProperty(files, '_parsedSnapshot', { value: parsed, enumerable: false })
+        } catch {
+          // Not valid JSON — skip caching
+        }
       }
-      const cid = placeholderCid(file.name + file.size)
-      return NextResponse.json({ cid })
+
+      // Add all uploaded files
+      const fileEntries = formData.getAll('file')
+      for (const entry of fileEntries) {
+        if (entry instanceof File) {
+          files.push(entry)
+        }
+      }
+
+      if (files.length === 0) {
+        return NextResponse.json({ error: 'No files provided' }, { status: 400 })
+      }
+
+      const client = await getW3upClient()
+      const cid = await client.uploadDirectory(files)
+      const cidStr = cid.toString()
+
+      // Cache snapshot if we parsed it
+      if (snapshotText) {
+        try {
+          const parsed = JSON.parse(snapshotText)
+          snapshotCache.set(cidStr, parsed)
+        } catch {
+          // skip
+        }
+      }
+
+      console.log(`[ipfs] Uploaded directory (${files.length} files) → CID: ${cidStr}`)
+      console.log(`[ipfs] Files: ${files.map((f) => f.name).join(', ')}`)
+
+      return NextResponse.json({ cid: cidStr })
     }
 
     return NextResponse.json({ error: 'Unsupported content type' }, { status: 415 })
   } catch (err) {
-    console.error('IPFS upload error:', err)
-    return NextResponse.json({ error: 'IPFS upload failed' }, { status: 500 })
+    console.error('[ipfs] Upload error:', err)
+    return NextResponse.json(
+      { error: `IPFS upload failed: ${(err as Error).message}` },
+      { status: 500 }
+    )
   }
-}
-
-/**
- * Deterministic placeholder CID. Replace this function body with real
- * web3.storage upload once credentials are configured.
- * Format matches a valid base32 CIDv1 prefix for UI display purposes.
- */
-function placeholderCid(content: string): string {
-  const hash = createHash('sha256').update(content).digest('hex')
-  return `bafybeig${hash.slice(0, 52)}`
 }

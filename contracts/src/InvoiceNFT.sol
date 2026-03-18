@@ -30,6 +30,7 @@ contract InvoiceNFT is ERC721, Ownable {
         bool isRepaid;
         string ipfsCID;
         bytes32 legalAssignmentHash;
+        uint256 requestedAmount; // 18 decimals — user's desired financing amount in USD
     }
 
     address public acurastProcessor;
@@ -97,7 +98,8 @@ contract InvoiceNFT is ERC721, Ownable {
             isCollateralized: false,
             isRepaid: false,
             ipfsCID: data.ipfsCID,
-            legalAssignmentHash: data.legalAssignmentHash
+            legalAssignmentHash: data.legalAssignmentHash,
+            requestedAmount: data.requestedAmount
         });
 
         emit MintRequested(pendingTokenId, msg.sender, data.invoiceHash);

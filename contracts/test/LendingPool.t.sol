@@ -246,7 +246,74 @@ contract LendingPoolTest is Test {
         assertGt(owed2, owed1);
     }
 
+    // ─── requestedAmount ────────────────────────────────────────────────────
+
+    function test_DepositCollateral_UsesRequestedAmount() public {
+        // requestedAmount = 10000 USD < maxLtv (14400 USD) → maxFundable = 10000
+        uint256 tokenId = _mintAndFulfillWithAmount("INV-REQ1", 10000 * 1e18);
+        vm.startPrank(borrower);
+        nft.approve(address(pool), tokenId);
+        pool.depositCollateral(tokenId);
+        vm.stopPrank();
+        (,,, uint256 maxFundable,,,,,,) = pool.loans(tokenId);
+        assertEq(maxFundable, 10000 * 1e6);
+    }
+
+    function test_DepositCollateral_CapsAtMaxLtv() public {
+        // requestedAmount = 20000 USD > maxLtv (14400 USD) → maxFundable = 14400
+        uint256 tokenId = _mintAndFulfillWithAmount("INV-REQ2", 20000 * 1e18);
+        vm.startPrank(borrower);
+        nft.approve(address(pool), tokenId);
+        pool.depositCollateral(tokenId);
+        vm.stopPrank();
+        (,,, uint256 maxFundable,,,,,,) = pool.loans(tokenId);
+        assertEq(maxFundable, MAX_FUNDABLE_USDC);
+    }
+
+    function test_DepositCollateral_ZeroRequestedAmount_UsesMaxLtv() public {
+        // requestedAmount = 0 → falls back to maxLtv = 14400
+        uint256 tokenId = _mintAndFulfillWithAmount("INV-REQ3", 0);
+        vm.startPrank(borrower);
+        nft.approve(address(pool), tokenId);
+        pool.depositCollateral(tokenId);
+        vm.stopPrank();
+        (,,, uint256 maxFundable,,,,,,) = pool.loans(tokenId);
+        assertEq(maxFundable, MAX_FUNDABLE_USDC);
+    }
+
     // ─── Helpers ──────────────────────────────────────────────────────────────
+
+    function _mintAndFulfillWithAmount(string memory qbId, uint256 requestedAmount) internal returns (uint256 tokenId) {
+        InvoiceNFT.InvoiceData memory data = InvoiceNFT.InvoiceData({
+            tokenId: 0,
+            borrower: borrower,
+            invoiceHash: keccak256(abi.encodePacked("reqamt", qbId)),
+            faceValueUSD: FACE_VALUE_USD18,
+            faceValueOriginal: 1800000000000,
+            originalCurrency: "USD",
+            dueDate: block.timestamp + 90 days,
+            issuedDate: block.timestamp,
+            debtorHash: keccak256("Acme Corp 123"),
+            qbInvoiceId: qbId,
+            qbRealmId: "realm-001",
+            discountRateBps: 0,
+            riskTier: 0,
+            maxLtvBps: 0,
+            isCollateralized: false,
+            isRepaid: false,
+            ipfsCID: "bafybeig...",
+            legalAssignmentHash: bytes32(0),
+            requestedAmount: requestedAmount
+        });
+
+        vm.prank(borrower);
+        tokenId = nft.requestMint(data);
+
+        bytes32 hash = keccak256(abi.encodePacked(tokenId, DISCOUNT_BPS, RISK_TIER, uint16(MAX_LTV_BPS)));
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(processorPrivKey, hash);
+        bytes memory sig = abi.encodePacked(r, s, v);
+        nft.fulfillRisk(tokenId, DISCOUNT_BPS, RISK_TIER, uint16(MAX_LTV_BPS), sig);
+    }
 
     function _mintAndFulfill(string memory qbId) internal returns (uint256 tokenId) {
         InvoiceNFT.InvoiceData memory data = InvoiceNFT.InvoiceData({
@@ -267,7 +334,8 @@ contract LendingPoolTest is Test {
             isCollateralized: false,
             isRepaid: false,
             ipfsCID: "bafybeig...",
-            legalAssignmentHash: bytes32(0)
+            legalAssignmentHash: bytes32(0),
+            requestedAmount: 0
         });
 
         vm.prank(borrower);

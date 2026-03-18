@@ -23,6 +23,7 @@ export interface OnChainInvoice {
   isRepaid: boolean
   ipfsCID: string
   legalAssignmentHash: `0x${string}`
+  requestedAmount: bigint       // 18 decimals — user's desired financing amount in USD
 }
 
 /** Matches LendingPool.Loan struct */

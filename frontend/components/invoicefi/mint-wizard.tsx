@@ -12,7 +12,9 @@ import { useAccount } from 'wagmi'
 import { useRequestMint, usePollFulfillment, useApproveNFT } from '@/lib/hooks/useInvoiceNFT'
 import { useDepositCollateral } from '@/lib/hooks/useLendingPool'
 import { CONTRACTS } from '@/lib/contracts'
-import { hashFile } from '@/lib/ipfs/upload'
+import { WorldIDSigner } from './world-id-signer'
+import { generateLegalAssignment } from '@/lib/legal/template'
+import type { LegalAssignmentDocument, WorldIdProofData } from '@/lib/legal/template'
 import type { MintFormData, MintStep, QBInvoice, OnChainInvoice, RiskTier, AIAnalysisResult } from '@/lib/invoicefi/types'
 import { formatCurrency, daysUntil } from '@/lib/invoicefi/utils'
 import { encodeAbiParameters, keccak256, toHex, parseUnits } from 'viem'
@@ -173,6 +175,8 @@ export function MintWizard() {
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [aiError, setAiError] = useState<string | null>(null)
   const [riskError, setRiskError] = useState<string | null>(null)
+  const [legalDoc, setLegalDoc] = useState<LegalAssignmentDocument | null>(null)
+  const [worldIdProof, setWorldIdProof] = useState<WorldIdProofData | null>(null)
 
   const { requestMint, isPending: isMintPending, isConfirming: isMintConfirming, isSuccess: isMintSuccess, pendingTokenId, error: mintError, hash: mintHash } = useRequestMint()
   const { approve: approveNFT, isPending: isApprovePending, isConfirming: isApproveConfirming, isSuccess: isApproveSuccess, error: approveError } = useApproveNFT()
@@ -266,6 +270,10 @@ export function MintWizard() {
 
   const handleAmountNext = () => {
     if (formData.financingAmount <= 0) return
+    // Generate legal assignment template when entering documents step
+    if (formData.qbInvoice && address) {
+      setLegalDoc(generateLegalAssignment(formData.qbInvoice, address))
+    }
     setCurrentStep('documents')
   }
 
@@ -273,20 +281,28 @@ export function MintWizard() {
     setIsUploadingIPFS(true)
     setFetchError(null)
     try {
-      const { uploadInvoiceSnapshot, uploadDocument } = await import('@/lib/ipfs/upload')
+      const { uploadInvoiceDirectory } = await import('@/lib/ipfs/upload')
 
-      // Upload invoice JSON snapshot
-      const cid = await uploadInvoiceSnapshot({
-        invoice: formData.qbInvoice,
-        supportingDocs: formData.supportingDocs.map((f) => f.name),
-        timestamp: new Date().toISOString(),
-      })
-
-      let legalHash: `0x${string}` = '0x' + '00'.repeat(32)
-      if (formData.legalAssignment) {
-        legalHash = await hashFile(formData.legalAssignment)
-        await uploadDocument(formData.legalAssignment)
+      // Build legal assignment file from World ID signed document
+      let legalFile: File | undefined
+      let legalHash: `0x${string}` = ('0x' + '00'.repeat(32)) as `0x${string}`
+      if (legalDoc && worldIdProof) {
+        const signedDoc = { ...legalDoc, worldIdProof }
+        const jsonStr = JSON.stringify(signedDoc, null, 2)
+        legalFile = new File([jsonStr], 'legal-assignment.json', { type: 'application/json' })
+        legalHash = keccak256(new TextEncoder().encode(jsonStr) as unknown as `0x${string}`)
       }
+
+      // Upload everything as a single IPFS directory
+      const cid = await uploadInvoiceDirectory(
+        {
+          invoice: formData.qbInvoice,
+          supportingDocs: formData.supportingDocs.map((f) => f.name),
+          timestamp: new Date().toISOString(),
+        },
+        formData.supportingDocs,
+        legalFile
+      )
 
       setFormData((prev) => ({ ...prev, ipfsCID: cid, legalAssignmentHash: legalHash }))
       setIsUploadingIPFS(false)
@@ -410,6 +426,7 @@ export function MintWizard() {
       isRepaid: false,
       ipfsCID: formData.ipfsCID,
       legalAssignmentHash: formData.legalAssignmentHash,
+      requestedAmount: parseUnits(formData.financingAmount.toString(), 18),
     })
   }
 
@@ -599,26 +616,16 @@ export function MintWizard() {
               />
             </div>
 
-            {/* 3. Legal Assignment */}
-            <div className="border border-border rounded-lg p-3">
-              <label className="text-sm font-medium text-foreground block mb-1">
-                Legal Assignment Document <span className="text-destructive">*</span>
-              </label>
-              <p className="text-xs text-muted-foreground mb-2">
-                Signed document assigning the invoice receivable to the lending pool. This is hashed and stored on-chain.
-              </p>
-              <Input
-                type="file"
-                accept=".pdf"
-                onChange={(e) => setFormData({ ...formData, legalAssignment: e.target.files?.[0] })}
-                className="h-10"
+            {/* 3. Legal Assignment — World ID Signing */}
+            {legalDoc && (
+              <WorldIDSigner
+                legalAssignment={legalDoc}
+                onSigned={(proof, signedDoc) => {
+                  setWorldIdProof(proof)
+                  setLegalDoc(signedDoc)
+                }}
               />
-              {formData.legalAssignment && (
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Selected: {formData.legalAssignment.name}
-                </p>
-              )}
-            </div>
+            )}
 
             {formData.supportingDocs.length > 0 && (
               <div className="bg-green-50 border border-green-200 p-2 rounded-lg">
@@ -815,7 +822,7 @@ export function MintWizard() {
               {[
                 ['Invoice', formData.qbInvoice.DocNumber ?? formData.qbInvoice.Id],
                 ['Face Value', formatCurrency(formData.qbInvoice.TotalAmt)],
-                ['Funding Target', formatCurrency(formData.qbInvoice.TotalAmt * formData.maxLtvBps / 10000)],
+                ['Funding Target', formatCurrency(Math.min(formData.financingAmount, formData.qbInvoice.TotalAmt * formData.maxLtvBps / 10000))],
                 ['Discount Rate', `${(formData.discountRateBps / 100).toFixed(2)}% APY`],
                 ['Max LTV', `${(formData.maxLtvBps / 100).toFixed(0)}%`],
               ].map(([label, value]) => (
@@ -880,7 +887,7 @@ export function MintWizard() {
               disabled={
                 (currentStep === 'select' && !formData.qbInvoice) ||
                 (currentStep === 'amount' && formData.financingAmount <= 0) ||
-                (currentStep === 'documents' && isUploadingIPFS) ||
+                (currentStep === 'documents' && (isUploadingIPFS || !worldIdProof)) ||
                 (currentStep === 'ai-review' && (isAnalyzing || (!aiAnalysis && !aiError)))
               }
               className="flex-1 h-10 bg-primary text-primary-foreground hover:bg-primary/90"
