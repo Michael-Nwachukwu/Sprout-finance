@@ -159,6 +159,19 @@ export function getNetworkName(network: string): string {
 }
 
 /**
+ * Decode bytes3 hex to a 3-letter currency string (e.g. "NGN", "PHP")
+ */
+export function bytes3ToString(bytes3Hex: string): string {
+  const hex = bytes3Hex.replace(/^0x/, '').slice(0, 6)
+  let str = ''
+  for (let i = 0; i < 6; i += 2) {
+    const code = parseInt(hex.slice(i, i + 2), 16)
+    if (code > 0) str += String.fromCharCode(code)
+  }
+  return str
+}
+
+/**
  * Truncate wallet address for display
  */
 export function truncateAddress(address: string): string {

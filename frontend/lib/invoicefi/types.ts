@@ -176,9 +176,41 @@ export type MintStep =
   | 'select'
   | 'amount'
   | 'documents'
+  | 'ai-review'
   | 'submit'
   | 'awaiting'
   | 'review'
+
+// ─── AI Analysis types ──────────────────────────────────────────────────────
+
+export interface AIAnalysisResult {
+  authenticity: {
+    score: number
+    flags: string[]
+    summary: string
+  }
+  crossReference: {
+    matched: boolean
+    discrepancies: string[]
+    summary: string
+  }
+  companyDueDiligence: {
+    companyName: string
+    industry: string
+    riskFactors: string[]
+    publicInfo: string
+    summary: string
+  }
+  fraudIndicators: {
+    riskLevel: 'low' | 'medium' | 'high'
+    flags: string[]
+    summary: string
+  }
+  overallSummary: string
+  recommendation: 'proceed' | 'caution' | 'reject'
+}
+
+// ─── MintWizard form state ───────────────────────────────────────────────────
 
 export interface MintFormData {
   qbInvoice: QBInvoice | null

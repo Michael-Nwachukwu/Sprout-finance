@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useWriteContract, useReadContract, usePublicClient } from 'wagmi'
 import { CONTRACTS } from '@/lib/contracts'
 import type { OnChainInvoice } from '@/lib/invoicefi/types'
@@ -29,23 +29,50 @@ interface RequestMintArgs {
 }
 
 export function useRequestMint() {
-  const { writeContract, data: hash, isPending, error } = useWriteContract()
+  const { writeContract, data: hash, isPending, error: writeError } = useWriteContract()
   const publicClient = usePublicClient()
   const [pendingTokenId, setPendingTokenId] = useState<bigint | null>(null)
   const [isConfirming, setIsConfirming] = useState(false)
+  const [mintError, setMintError] = useState<Error | null>(null)
+  const error = writeError || mintError
   const [isSuccess, setIsSuccess] = useState(false)
   const borrowerRef = useRef<`0x${string}` | null>(null)
   const pollingRef = useRef(false)
 
-  // Once we have a hash, poll the contract to find the new token ID
-  // This bypasses useWaitForTransactionReceipt which hangs on pallet_revive
+  // Once we have a hash, poll the contract to find the new token ID.
+  // We snapshot existing token IDs BEFORE the tx, then look for a NEW one after.
+  const knownTokenIdsRef = useRef<Set<string>>(new Set())
+
+  // Snapshot existing tokens when requestMint is called (before tx)
+  const snapshotExistingTokens = useCallback(async () => {
+    if (!publicClient) return
+    const known = new Set<string>()
+    for (let id = 1n; id <= 50n; id++) {
+      try {
+        await publicClient.readContract({
+          address: CONTRACTS.InvoiceNFT.address,
+          abi: CONTRACTS.InvoiceNFT.abi,
+          functionName: 'getInvoice',
+          args: [id],
+        })
+        known.add(id.toString())
+      } catch {
+        break // no more tokens
+      }
+    }
+    knownTokenIdsRef.current = known
+    console.log('[useRequestMint] snapshot existing tokens:', [...known].join(', '))
+  }, [publicClient])
+
+  // After tx hash received, poll for a NEW token that didn't exist before
   useEffect(() => {
     if (!hash || !publicClient || pollingRef.current) return
     pollingRef.current = true
     setIsConfirming(true)
 
     const borrower = borrowerRef.current
-    console.log('[useRequestMint] tx submitted:', hash, '— polling contract for new token...')
+    const knownBefore = knownTokenIdsRef.current
+    console.log('[useRequestMint] tx submitted:', hash, '— polling for new token...')
 
     let attempts = 0
     const maxAttempts = 60 // 5 minutes max
@@ -53,9 +80,10 @@ export function useRequestMint() {
     const poll = setInterval(async () => {
       attempts++
       try {
-        // Try sequential token IDs starting from 1
-        // Check the latest few IDs to find one matching our borrower
         for (let id = 1n; id <= 50n; id++) {
+          // Skip tokens that existed BEFORE our tx
+          if (knownBefore.has(id.toString())) continue
+
           try {
             const invoice = await publicClient.readContract({
               address: CONTRACTS.InvoiceNFT.address,
@@ -64,13 +92,12 @@ export function useRequestMint() {
               args: [id],
             }) as OnChainInvoice
 
-            // Found a matching invoice that was just created by this borrower
             if (
               invoice &&
               invoice.borrower?.toLowerCase() === borrower?.toLowerCase() &&
               invoice.faceValueUSD > 0n
             ) {
-              console.log('[useRequestMint] found token:', id.toString())
+              console.log('[useRequestMint] found NEW token:', id.toString())
               clearInterval(poll)
               setIsConfirming(false)
               setIsSuccess(true)
@@ -78,8 +105,7 @@ export function useRequestMint() {
               return
             }
           } catch {
-            // Token ID doesn't exist yet, stop scanning higher
-            break
+            break // no more tokens
           }
         }
       } catch (err) {
@@ -87,21 +113,27 @@ export function useRequestMint() {
       }
 
       if (attempts >= maxAttempts) {
-        console.error('[useRequestMint] gave up polling after', maxAttempts, 'attempts')
+        console.error('[useRequestMint] timed out — no new token found. The transaction may have reverted.')
         clearInterval(poll)
         setIsConfirming(false)
+        setMintError(new Error('Transaction may have failed — no new invoice found on-chain after 5 minutes. The invoice ID may already be used.'))
       }
-    }, 5000) // Poll every 5 seconds
+    }, 5000)
 
     return () => clearInterval(poll)
   }, [hash, publicClient])
 
-  const requestMint = (args: RequestMintArgs) => {
+  const requestMint = async (args: RequestMintArgs) => {
     setPendingTokenId(null)
     setIsConfirming(false)
     setIsSuccess(false)
+    setMintError(null)
     pollingRef.current = false
     borrowerRef.current = args.borrower
+
+    // Snapshot existing tokens BEFORE submitting so we can detect new ones
+    await snapshotExistingTokens()
+
     writeContract({
       address: CONTRACTS.InvoiceNFT.address,
       abi: CONTRACTS.InvoiceNFT.abi,

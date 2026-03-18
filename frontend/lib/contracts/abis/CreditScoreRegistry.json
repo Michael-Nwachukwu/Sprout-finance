@@ -1,0 +1,29 @@
+[
+  {
+    "type": "function",
+    "name": "getScore",
+    "inputs": [{ "name": "borrower", "type": "address" }],
+    "outputs": [{ "name": "", "type": "uint8" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "isBlacklisted",
+    "inputs": [{ "name": "borrower", "type": "address" }],
+    "outputs": [{ "name": "", "type": "bool" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "records",
+    "inputs": [{ "name": "borrower", "type": "address" }],
+    "outputs": [
+      { "name": "score", "type": "uint8" },
+      { "name": "totalLoans", "type": "uint256" },
+      { "name": "onTimeRepayments", "type": "uint256" },
+      { "name": "defaults", "type": "uint256" },
+      { "name": "blacklisted", "type": "bool" }
+    ],
+    "stateMutability": "view"
+  }
+]

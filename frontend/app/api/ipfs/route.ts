@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createHash } from 'crypto'
+import { snapshotCache } from '@/lib/ipfs/snapshot-cache'
 
 /**
  * POST /api/ipfs
@@ -18,6 +19,7 @@ export async function POST(request: NextRequest) {
     if (contentType.includes('application/json')) {
       const { snapshot } = await request.json() as { snapshot: object }
       const cid = placeholderCid(JSON.stringify(snapshot))
+      snapshotCache.set(cid, snapshot as Record<string, unknown>)
       return NextResponse.json({ cid })
     }
 

@@ -10,6 +10,9 @@ import { RiskTierBadge } from './risk-tier-badge'
 import { FundingProgressBar } from './funding-progress-bar'
 import { DaysToMaturityPill } from './days-to-maturity-pill'
 import { TransactionModal } from './transaction-modal'
+import { CompanyInfo } from './company-info'
+import { InvoiceDocuments } from './invoice-documents'
+import { AIRiskSummary } from './ai-risk-summary'
 import { ArrowRight, Loader2 } from 'lucide-react'
 import { useGetLoan } from '@/lib/hooks/useLendingPool'
 import { useFundInvoice } from '@/lib/hooks/useLendingPool'
@@ -326,18 +329,37 @@ export function InvoiceFund({ invoiceId }: InvoiceFundProps) {
         />
       )}
 
-      <Card className="bg-card border-border p-4 md:p-5">
-        <h3 className="text-sm font-semibold text-foreground mb-2">Invoice Details</h3>
-        <p className="text-xs text-muted-foreground">
-          QB Invoice ID: <span className="font-mono">{invoice.qbInvoiceId}</span>
-        </p>
-        <p className="text-xs text-muted-foreground mt-1">
-          Due: {formatDate(new Date(Number(invoice.dueDate) * 1000))}
-        </p>
-        <p className="text-xs text-muted-foreground mt-1">
-          IPFS: <span className="font-mono">{invoice.ipfsCID.slice(0, 30)}...</span>
-        </p>
-      </Card>
+      {/* AI Risk Analysis */}
+      <AIRiskSummary
+        tokenId={invoiceId}
+        invoiceData={{
+          invoiceId: invoiceId,
+          borrower: invoice.borrower,
+          debtorName: invoice.debtorHash,
+          faceValueUSD: Number(invoice.faceValueUSD) / 1e18,
+          faceValueOriginal: Number(invoice.faceValueOriginal),
+          originalCurrency: invoice.originalCurrency,
+          issuedDate: Number(invoice.issuedDate) > 0 ? new Date(Number(invoice.issuedDate) * 1000).toISOString() : undefined,
+          dueDate: Number(loan.dueDate) > 0 ? new Date(Number(loan.dueDate) * 1000).toISOString() : undefined,
+          riskTier: invoice.riskTier,
+          discountRateBps: invoice.discountRateBps,
+          ipfsCID: invoice.ipfsCID,
+        }}
+      />
+
+      {/* Company & Invoice Details */}
+      <CompanyInfo
+        ipfsCID={invoice.ipfsCID}
+        borrowerAddress={invoice.borrower as string}
+        originalCurrency={invoice.originalCurrency as string}
+        faceValueOriginal={invoice.faceValueOriginal as bigint}
+      />
+
+      {/* Documents */}
+      <InvoiceDocuments
+        ipfsCID={invoice.ipfsCID}
+        legalAssignmentHash={invoice.legalAssignmentHash as string}
+      />
     </div>
   )
 }

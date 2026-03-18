@@ -1,18 +1,19 @@
 'use client'
 
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { useActiveTokenIds, useGetLoan } from '@/lib/hooks/useLendingPool'
-import { useGetInvoice } from '@/lib/hooks/useInvoiceNFT'
+import { useActiveTokenIds, useGetLoan, useDepositCollateral } from '@/lib/hooks/useLendingPool'
+import { useGetInvoice, useApproveNFT } from '@/lib/hooks/useInvoiceNFT'
 import { formatDate, daysUntil } from '@/lib/invoicefi/utils'
 import { CONTRACTS } from '@/lib/contracts'
 import { parseLoan, parseInvoice } from '@/lib/contracts/parsers'
 import Link from 'next/link'
-import { ArrowRight, Plus, Loader2 } from 'lucide-react'
+import { ArrowRight, Plus, Loader2, Upload } from 'lucide-react'
 import { RiskTierBadge } from './risk-tier-badge'
 import { DaysToMaturityPill } from './days-to-maturity-pill'
 import { CurrencyAmount } from './currency-amount'
-import { useAccount } from 'wagmi'
+import { useAccount, usePublicClient } from 'wagmi'
 
 const contractsDeployed = CONTRACTS.LendingPool.address !== 'TO_BE_FILLED_ON_DEPLOY'
 
@@ -32,12 +33,13 @@ function LoanRow({ tokenId, borrowerAddress }: { tokenId: bigint; borrowerAddres
   if (!loan || !invoice) return null
 
   if (loan.borrower.toLowerCase() !== borrowerAddress.toLowerCase()) return null
-  if (!loan.active && loan.totalFunded === 0n) return null // listing not yet funded
 
   const amount = Number(loan.totalFunded) / 1e6
+  const maxFundable = Number(loan.maxFundable) / 1e6
   const apy = (Number(loan.discountRateBps) / 100).toFixed(1)
   const riskTier = (invoice.riskTier || 3) as 1 | 2 | 3 | 4 | 5
   const dueDate = new Date(Number(invoice.dueDate) * 1000).toISOString().split('T')[0]
+  const isAwaitingFunding = !loan.active && loan.totalFunded === 0n
 
   return (
     <tr
@@ -55,7 +57,7 @@ function LoanRow({ tokenId, borrowerAddress }: { tokenId: bigint; borrowerAddres
         </Link>
       </td>
       <td className="p-3 md:p-4">
-        <CurrencyAmount amount={amount} size="sm" />
+        <CurrencyAmount amount={isAwaitingFunding ? maxFundable : amount} size="sm" />
       </td>
       <td className="p-3 md:p-4 text-foreground">{apy}%</td>
       <td className="p-3 md:p-4">
@@ -68,23 +70,114 @@ function LoanRow({ tokenId, borrowerAddress }: { tokenId: bigint; borrowerAddres
         <div className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${
           loan.defaulted ? 'bg-red-100 text-red-800' :
           loan.active ? 'bg-blue-100 text-blue-800' :
+          isAwaitingFunding ? 'bg-green-100 text-green-800' :
           'bg-yellow-100 text-yellow-800'
         }`}>
-          {loan.defaulted ? 'Defaulted' : loan.active ? 'Active' : 'Funding'}
+          {loan.defaulted ? 'Defaulted' : loan.active ? 'Active' : isAwaitingFunding ? 'Listed' : 'Funding'}
         </div>
       </td>
     </tr>
   )
 }
 
+// ─── Undeposited invoice row (NFT in user wallet, not yet in LendingPool) ────
+
+function UndepositedRow({ tokenId }: { tokenId: bigint }) {
+  const { data: invoiceRaw } = useGetInvoice(tokenId)
+  const invoice = parseInvoice(invoiceRaw)
+  const { approve: approveNFT, isPending: isApprovePending, isConfirming: isApproveConfirming, isSuccess: isApproveSuccess } = useApproveNFT()
+  const { depositCollateral, isPending: isDepositPending, isConfirming: isDepositConfirming, isSuccess: isDepositSuccess } = useDepositCollateral()
+
+  useEffect(() => {
+    if (isApproveSuccess && !isDepositPending && !isDepositConfirming && !isDepositSuccess) {
+      depositCollateral(tokenId)
+    }
+  }, [isApproveSuccess, tokenId, depositCollateral, isDepositPending, isDepositConfirming, isDepositSuccess])
+
+  if (!invoice) return null
+
+  const faceValue = Number(invoice.faceValueUSD) / 1e18
+  const riskTier = (invoice.riskTier || 3) as 1 | 2 | 3 | 4 | 5
+  const apy = (Number(invoice.discountRateBps) / 100).toFixed(1)
+  const isProcessing = isApprovePending || isApproveConfirming || isDepositPending || isDepositConfirming
+
+  if (isDepositSuccess) return null // deposited — will appear in loans table after refetch
+
+  return (
+    <tr className="hover:bg-secondary/50 transition-colors">
+      <td className="p-3 md:p-4 text-foreground font-medium">#{tokenId.toString()}</td>
+      <td className="p-3 md:p-4"><CurrencyAmount amount={faceValue} size="sm" /></td>
+      <td className="p-3 md:p-4 text-foreground">{apy}%</td>
+      <td className="p-3 md:p-4"><RiskTierBadge riskTier={riskTier} size="sm" /></td>
+      <td className="p-3 md:p-4">
+        <div className="inline-block px-2 py-1 text-xs font-medium rounded-full bg-orange-100 text-orange-800">
+          Not Deposited
+        </div>
+      </td>
+      <td className="p-3 md:p-4">
+        <Button
+          size="sm"
+          disabled={isProcessing}
+          onClick={() => approveNFT(tokenId, CONTRACTS.LendingPool.address)}
+        >
+          {isProcessing ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Upload className="w-3 h-3 mr-1" />}
+          {isApprovePending ? 'Approve...' : isApproveConfirming ? 'Confirming...' : isDepositPending ? 'Deposit...' : isDepositConfirming ? 'Confirming...' : 'Deposit'}
+        </Button>
+      </td>
+    </tr>
+  )
+}
+
+// ─── Hook: find NFTs owned by user but not deposited ─────────────────────────
+
+function useUndepositedTokens(userAddress: string | undefined, activeTokenIds: readonly bigint[] | undefined) {
+  const publicClient = usePublicClient()
+  const [undepositedIds, setUndepositedIds] = useState<bigint[]>([])
+  const [isScanning, setIsScanning] = useState(false)
+
+  const scan = useCallback(async () => {
+    if (!publicClient || !userAddress) return
+    setIsScanning(true)
+    const found: bigint[] = []
+    const activeSet = new Set((activeTokenIds ?? []).map(id => id.toString()))
+
+    for (let id = 1n; id <= 50n; id++) {
+      try {
+        const owner = await publicClient.readContract({
+          address: CONTRACTS.InvoiceNFT.address,
+          abi: CONTRACTS.InvoiceNFT.abi,
+          functionName: 'ownerOf',
+          args: [id],
+        }) as `0x${string}`
+
+        if (owner.toLowerCase() === userAddress.toLowerCase() && !activeSet.has(id.toString())) {
+          found.push(id)
+        }
+      } catch {
+        // Token doesn't exist or was burned — stop scanning
+        break
+      }
+    }
+
+    setUndepositedIds(found)
+    setIsScanning(false)
+  }, [publicClient, userAddress, activeTokenIds])
+
+  useEffect(() => { scan() }, [scan])
+
+  return { undepositedIds, isScanning, rescan: scan }
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function BorrowContent({ isHomepage = false }: BorrowContentProps) {
   const { address, isConnected } = useAccount()
-  const { data: activeTokenIds, isLoading } = useActiveTokenIds()
+  const { data: activeTokenIdsRaw, isLoading } = useActiveTokenIds()
+  const activeTokenIds = activeTokenIdsRaw as bigint[] | undefined
+  const { undepositedIds, isScanning } = useUndepositedTokens(address, activeTokenIds)
 
   const myLoanCount = !isLoading && activeTokenIds && address
-    ? activeTokenIds.length // actual filtering happens in LoanRow; count is an approximation
+    ? activeTokenIds.length
     : 0
 
   if (!contractsDeployed) {
@@ -183,6 +276,35 @@ export function BorrowContent({ isHomepage = false }: BorrowContentProps) {
               </div>
             )}
           </Card>
+
+          {/* Undeposited Invoices */}
+          {!isScanning && undepositedIds.length > 0 && (
+            <Card className="bg-card border-border overflow-hidden border-orange-200">
+              <div className="p-4 md:p-5 border-b border-border bg-orange-50">
+                <h3 className="text-lg font-semibold text-foreground">Undeposited Invoices</h3>
+                <p className="text-xs text-muted-foreground mt-1">These invoices are minted but not yet listed for funding. Deposit to make them available to lenders.</p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="border-b border-border bg-secondary/50">
+                    <tr>
+                      <th className="text-left p-3 md:p-4 font-medium text-muted-foreground text-xs">Token ID</th>
+                      <th className="text-left p-3 md:p-4 font-medium text-muted-foreground text-xs">Face Value</th>
+                      <th className="text-left p-3 md:p-4 font-medium text-muted-foreground text-xs">APY</th>
+                      <th className="text-left p-3 md:p-4 font-medium text-muted-foreground text-xs">Risk</th>
+                      <th className="text-left p-3 md:p-4 font-medium text-muted-foreground text-xs">Status</th>
+                      <th className="text-left p-3 md:p-4 font-medium text-muted-foreground text-xs">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {undepositedIds.map(id => (
+                      <UndepositedRow key={id.toString()} tokenId={id} />
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          )}
 
           {/* Info Card */}
           <Card className="bg-blue-50 border-blue-200 p-4 md:p-5">
