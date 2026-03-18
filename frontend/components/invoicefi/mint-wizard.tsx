@@ -187,8 +187,12 @@ export function MintWizard() {
   useEffect(() => {
     if (isApproveSuccess && formData.pendingTokenId != null && !depositTriggeredRef.current) {
       depositTriggeredRef.current = true
-      console.log('[MintWizard] NFT approved, now calling depositCollateral...')
-      depositCollateral(formData.pendingTokenId)
+      console.log('[MintWizard] NFT approved, now calling depositCollateral for tokenId:', formData.pendingTokenId.toString())
+      // Small delay to ensure approve is finalized on-chain before deposit
+      const timer = setTimeout(() => {
+        depositCollateral(formData.pendingTokenId!)
+      }, 3000)
+      return () => clearTimeout(timer)
     }
   }, [isApproveSuccess, formData.pendingTokenId, depositCollateral])
 
@@ -251,9 +255,17 @@ export function MintWizard() {
     }
   }, [isMintSuccess, pendingTokenId, triggerRiskEngine, aiAnalysis])
 
-  // Redirect to borrow page when deposit confirms
+  // Log deposit errors
+  useEffect(() => {
+    if (depositError) {
+      console.error('[MintWizard] depositCollateral FAILED:', depositError.message)
+    }
+  }, [depositError])
+
+  // Log deposit success and redirect
   useEffect(() => {
     if (isDepositSuccess) {
+      console.log('[MintWizard] depositCollateral SUCCESS — redirecting to /borrow')
       router.push('/borrow')
     }
   }, [isDepositSuccess, router])
@@ -839,9 +851,27 @@ export function MintWizard() {
             <div className="bg-secondary/50 p-3 rounded-lg text-xs text-muted-foreground">
               Confirming will require two transactions: first approve the NFT transfer, then deposit as collateral. Lenders will then fund your invoice.
             </div>
-            {(approveError || depositError) && (
+            {approveError && (
               <div className="bg-red-50 border border-red-200 p-3 rounded-lg text-xs text-red-800">
-                {approveError?.message || depositError?.message}
+                <strong>Approve failed:</strong> {approveError.message}
+              </div>
+            )}
+            {depositError && (
+              <div className="bg-red-50 border border-red-200 p-3 rounded-lg text-xs text-red-800 space-y-2">
+                <div><strong>Deposit failed:</strong> {depositError.message}</div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-xs h-7"
+                  onClick={() => {
+                    if (formData.pendingTokenId != null) {
+                      console.log('[MintWizard] Retrying depositCollateral...')
+                      depositCollateral(formData.pendingTokenId)
+                    }
+                  }}
+                >
+                  Retry Deposit
+                </Button>
               </div>
             )}
             <Button
