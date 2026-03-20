@@ -4,14 +4,22 @@
 
 import fs from 'fs'
 import path from 'path'
+import os from 'os'
 
-const CACHE_DIR = path.join(process.cwd(), '.cache')
+// Use /tmp on serverless (Vercel), .cache locally
+const CACHE_DIR = process.env.VERCEL
+  ? path.join(os.tmpdir(), 'sprout-cache')
+  : path.join(process.cwd(), '.cache')
 const SNAPSHOT_FILE = path.join(CACHE_DIR, 'ipfs-snapshots.json')
 const AI_CACHE_FILE = path.join(CACHE_DIR, 'ai-analysis.json')
 
 function ensureCacheDir() {
-  if (!fs.existsSync(CACHE_DIR)) {
-    fs.mkdirSync(CACHE_DIR, { recursive: true })
+  try {
+    if (!fs.existsSync(CACHE_DIR)) {
+      fs.mkdirSync(CACHE_DIR, { recursive: true })
+    }
+  } catch {
+    // Read-only filesystem — cache writes will be no-ops
   }
 }
 
@@ -22,15 +30,19 @@ function readJsonFile(filePath: string): Record<string, any> {
       return JSON.parse(fs.readFileSync(filePath, 'utf-8'))
     }
   } catch {
-    // Corrupted file — start fresh
+    // Corrupted or inaccessible file — start fresh
   }
   return {}
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function writeJsonFile(filePath: string, data: Record<string, any>) {
-  ensureCacheDir()
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8')
+  try {
+    ensureCacheDir()
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8')
+  } catch {
+    // Serverless filesystem may be read-only — skip caching silently
+  }
 }
 
 // ── Snapshot Cache ──────────────────────────────────────────────────────────
