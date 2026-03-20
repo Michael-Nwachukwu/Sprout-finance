@@ -16,3 +16,4 @@ node_modules
 /contracts/lib
 acurast.md
 /test-docs
+.vercel

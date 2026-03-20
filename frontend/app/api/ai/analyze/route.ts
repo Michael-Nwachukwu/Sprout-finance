@@ -80,6 +80,7 @@ IMPORTANT CONTEXT about this platform:
 - Delivery notes / Bills of Lading may show "Pending" receipt status if goods are in transit — this is normal for pre-shipment or in-transit invoice financing and should NOT be treated as a fraud indicator.
 - Logistics / freight charges appearing on an invoice but not on the PO is common in trade finance — the PO covers goods, while the invoice includes additional delivery costs. This is a minor discrepancy at most, not a rejection-worthy issue.
 - The PO subtotal may differ from the invoice total because the invoice includes VAT/tax and logistics that the PO does not cover.
+- Payment terms on the PO (e.g. "Net 60") and the actual invoice due date may differ. This is NORMAL in trade finance — PO terms are initial estimates, while the invoice due date reflects the final negotiated payment schedule. A PO saying "Net 60" with an invoice due in ~90 days is a minor administrative variance, NOT a fraud indicator or rejection-worthy discrepancy. Only flag this if the gap is extreme (e.g. Net 30 vs 180+ days).
 
 Be thorough but fair. Flag genuine concerns, not hypothetical ones. Consider:
 - Date consistency (invoice date should be before/on due date, PO before invoice, BoL around invoice date)

@@ -6,10 +6,8 @@ import {
   defineChain,
   keccak256,
   encodePacked,
-  toBytes,
 } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
-import { secp256k1 } from '@noble/curves/secp256k1'
 import deployments from '../../../../deployments/polkadot-testnet.json'
 
 // --- Chain config (server-side, no wagmi) ---
@@ -133,18 +131,11 @@ function bytes3ToString(bytes3Hex: string): string {
   return str
 }
 
-function signRawHash(messageHash: `0x${string}`, privateKey: string): `0x${string}` {
-  const hashBytes = toBytes(messageHash)
-  const privKeyHex = privateKey.replace(/^0x/, '')
-  const privKeyBytes = Uint8Array.from(Buffer.from(privKeyHex, 'hex'))
-
-  const sig = secp256k1.sign(hashBytes, privKeyBytes)
-
-  const r = sig.r.toString(16).padStart(64, '0')
-  const s = sig.s.toString(16).padStart(64, '0')
-  const v = sig.recovery + 27
-
-  return `0x${r}${s}${v.toString(16).padStart(2, '0')}` as `0x${string}`
+async function signRawHash(messageHash: `0x${string}`, privateKey: string): Promise<`0x${string}`> {
+  const account = privateKeyToAccount(privateKey as `0x${string}`)
+  // signMessage uses EIP-191 prefix which doesn't match what the contract expects (raw hash).
+  // Use account.sign() which signs the raw hash directly.
+  return account.sign({ hash: messageHash })
 }
 
 // --- API Route ---
@@ -233,7 +224,7 @@ export async function POST(request: NextRequest) {
       [tokenId, risk.discountBps, risk.riskTier, risk.maxLtvBps]
     )
   )
-  const signature = signRawHash(messageHash, privateKey)
+  const signature = await signRawHash(messageHash, privateKey)
 
   // 6. Submit fulfillRisk tx
   const account = privateKeyToAccount(privateKey as `0x${string}`)

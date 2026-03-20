@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sprout Finance - User Flow</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #07090f;
+            --bg-panel: #11131a;
+            --bg-node: #161a23;
+            --border-light: rgba(255, 255, 255, 0.08);
+            
+            --color-blue: #3b82f6;
+            --color-pink: #ec4899;
+            --color-turquoise: #06b6d4;
+            --color-orange: #f97316;
+            --color-red: #ef4444;
+            --color-yellow: #eab308;
+            --color-green: #22c55e;
+            --color-purple: #a855f7;
+            
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            overflow-x: auto;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+
+        .canvas {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 60px 20px;
+            width: 1400px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        /* SVG Overlay for Connections */
+        #connections {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .path-line {
+            fill: none;
+            stroke-width: 1.5px;
+            stroke: var(--border-light);
+        }
+        
+        .path-line.blue-glow { stroke: rgba(59, 130, 246, 0.7); filter: drop-shadow(0 0 5px rgba(59, 130, 246, 0.4)); }
+        .path-line.green-glow { stroke: rgba(34, 197, 94, 0.7); filter: drop-shadow(0 0 5px rgba(34, 197, 94, 0.4)); }
+
+        h2, h3, h4, p { margin: 0; }
+        
+        .box {
+            background-color: var(--bg-panel);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 24px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Top Node */
+        .top-node {
+            width: 320px;
+            text-align: center;
+            margin-bottom: 50px;
+            border-color: rgba(59, 130, 246, 0.3);
+            box-shadow: 0 0 25px rgba(59, 130, 246, 0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .app-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .top-node h3 { font-size: 1.2rem; font-weight: 700; color: #fff; }
+        .top-node p { font-size: 0.85rem; color: var(--text-muted); }
+
+        /* Main Grid */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 300px 660px 300px;
+            gap: 40px;
+            margin-bottom: 60px;
+        }
+
+        .side-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .side-box {
+            border-color: rgba(255, 255, 255, 0.1);
+            background: linear-gradient(180deg, #11131a 0%, #0d0f15 100%);
+        }
+
+        .side-box.green { border-top: 2px solid var(--color-green); }
+        .side-box.purple { border-top: 2px solid var(--color-purple); }
+        .side-box.pink { border-top: 2px solid var(--color-pink); }
+
+        .side-box h4 {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #f8fafc;
+        }
+        
+        .side-box.green h4::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background-color: var(--color-green); }
+        .side-box.purple h4::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background-color: var(--color-purple); }
+        .side-box.pink h4::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background-color: var(--color-pink); }
+
+        .lender-step {
+            margin-bottom: 20px;
+        }
+        
+        .lender-step:last-child { margin-bottom: 0; }
+        
+        .lender-step h5 {
+            font-size: 0.85rem;
+            color: #e2e8f0;
+            margin: 0 0 6px 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .lender-step h5 .dot {
+            width: 6px; height: 6px; background: rgba(255,255,255,0.3); border-radius: 50%;
+        }
+
+        .lender-step p {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            line-height: 1.5;
+            padding-left: 12px;
+            border-left: 1px solid rgba(255,255,255,0.05);
+            margin-left: 3px;
+        }
+
+        /* Center Flow (Borrower Journey) */
+        .center-flow {
+            border: 1px solid rgba(59, 130, 246, 0.4);
+            box-shadow: 0 0 40px rgba(59, 130, 246, 0.05);
+            padding: 30px;
+            border-radius: 16px;
+            background: linear-gradient(180deg, #121622 0%, #0d1017 100%);
+        }
+
+        .center-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 35px;
+        }
+        
+        .center-header .icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.5);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-blue);
+        }
+
+        .center-header h2 { font-size: 1.25rem; margin-bottom: 4px; color: #fff; }
+        .center-header p { font-size: 0.75rem; color: var(--color-blue); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; }
+
+        .steps-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .step-node {
+            background-color: var(--bg-node);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 10px;
+            padding: 18px;
+            display: flex;
+            gap: 18px;
+            align-items: flex-start;
+            transition: border-color 0.2s;
+        }
+        
+        .step-node:hover {
+            border-color: rgba(59, 130, 246, 0.4);
+            background-color: #1a1e2a;
+        }
+
+        .step-number {
+            background-color: rgba(59, 130, 246, 0.15);
+            color: var(--color-blue);
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: 700;
+            flex-shrink: 0;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .step-content { flex: 1; }
+
+        .tag {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            background-color: rgba(255, 255, 255, 0.05);
+            color: #cbd5e1;
+            margin-bottom: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .step-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #f1f5f9;
+        }
+
+        .step-desc {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+
+        /* Bottom Nodes */
+        .bottom-nodes {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .outcome-node {
+            width: 300px;
+            text-align: center;
+            padding: 24px 20px;
+            background: linear-gradient(180deg, #11131a 0%, #0a0b10 100%);
+        }
+        
+        .outcome-node h3 {
+            font-size: 0.95rem;
+            margin-top: 16px;
+            margin-bottom: 8px;
+        }
+        
+        .outcome-node p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .outcome-node .status-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .outcome-green { border: 1px solid rgba(34, 197, 94, 0.3); box-shadow: 0 10px 30px rgba(34, 197, 94, 0.05); }
+        .outcome-green h3 { color: var(--color-green); }
+        .outcome-green .status-icon { background: rgba(34, 197, 94, 0.15); border: 2px solid var(--color-green); color: var(--color-green); font-weight: bold; }
+
+        .outcome-yellow { border: 1px solid rgba(234, 179, 8, 0.3); box-shadow: 0 10px 30px rgba(234, 179, 8, 0.05); }
+        .outcome-yellow h3 { color: var(--color-yellow); }
+        .outcome-yellow .status-icon { background: rgba(234, 179, 8, 0.15); border: 2px solid var(--color-yellow); color: var(--color-yellow); font-weight: bold; }
+
+        .outcome-red { border: 1px solid rgba(239, 68, 68, 0.3); box-shadow: 0 10px 30px rgba(239, 68, 68, 0.05); }
+        .outcome-red h3 { color: var(--color-red); }
+        .outcome-red .status-icon { background: rgba(239, 68, 68, 0.15); border: 2px solid var(--color-red); color: var(--color-red); font-weight: bold; font-family: monospace; font-size: 1.2rem;}
+
+        .floating-label {
+            position: absolute;
+            background: #1e293b;
+            color: #94a3b8;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+            border: 1px solid #334155;
+            z-index: 20;
+        }
+
+        /* Marker definitions */
+        svg { position: absolute; }
+    </style>
+</head>
+<body>
+
+<svg id="connections">
+    <defs>
+        <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6" opacity="0.8" />
+        </marker>
+        <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#22c55e" opacity="0.8" />
+        </marker>
+        <marker id="arrow-gray" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#475569" />
+        </marker>
+    </defs>
+</svg>
+
+<div class="canvas">
+    
+    <!-- Top Node -->
+    <div class="box top-node" id="node-top">
+        <div class="app-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+        </div>
+        <h3>Sprout Finance App</h3>
+        <p>Decentralized Invoice Financing Portal</p>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="main-layout">
+        
+        <!-- Left Panel: LENDER JOURNEY -->
+        <div class="side-panel">
+            <div class="box side-box green" id="node-lender">
+                <h4>LENDER EXPERIENCe</h4>
+                
+                <div class="lender-step">
+                    <h5><div class="dot"></div>Browse Marketplace</h5>
+                    <p>Lenders view open invoice listings sorted by Risk Tier (1-5) and fixed High-Yield APRs.</p>
+                </div>
+                
+                <div class="lender-step">
+                    <h5><div class="dot"></div>Review Proofs</h5>
+                    <p>Lenders read the Gemini AI anomaly report and view attached Purchase Orders on IPFS.</p>
+                </div>
+                
+                <div class="lender-step">
+                    <h5><div class="dot"></div>Fund Fractionally</h5>
+                    <p>Lenders deposit any amount of USDC. Once the pool hits 100%, the loan is active.</p>
+                </div>
+                
+                <div class="lender-step">
+                    <h5><div class="dot"></div>Track & Collect</h5>
+                    <p>Monitor real-time health factors. Collect pro-rata Principal + Interest on maturity.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center Flow (Borrower Journey) -->
+        <div class="box center-flow" id="node-center">
+            <div class="center-header">
+                <div class="icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </div>
+                <div>
+                    <h2>Borrower Journey</h2>
+                    <p>THE INVOICE MINTING WIZARD</p>
+                </div>
+            </div>
+            
+            <div class="steps-container">
+                <div class="step-node" id="step-1">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <span class="tag">Onboarding</span>
+                        <div class="step-title">Connect Wallet & Accounting Suite</div>
+                        <div class="step-desc">User connects their MetaMask (Polkadot Hub Hub) and authorizes QuickBooks via OAuth.</div>
+                    </div>
+                </div>
+                
+                <div class="step-node" id="step-2">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <span class="tag">Selection</span>
+                        <div class="step-title">Select Unpaid Invoice</div>
+                        <div class="step-desc">The UI displays live unpaid B2B invoices. User selects one and sets their desired financing amount.</div>
+                    </div>
+                </div>
+                
+                <div class="step-node" id="step-3">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <span class="tag">Evidence</span>
+                        <div class="step-title">Upload Supporting Documents</div>
+                        <div class="step-desc">User uploads relevant PDFs (Purchase Orders, Bills of Lading). Files are cryptographically pinned to IPFS.</div>
+                    </div>
+                </div>
+                
+                <div class="step-node" id="step-4">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <span class="tag">Identity</span>
+                        <div class="step-title">Sign Legal Assignment (World ID)</div>
+                        <div class="step-desc">User clicks "Sign Document". A World ID zero-knowledge proof verifies unique humanhood without exposing KYC data.</div>
+                    </div>
+                </div>
+                
+                <div class="step-node" id="step-5">
+                    <div class="step-number">5</div>
+                    <div class="step-content">
+                        <span class="tag">Action</span>
+                        <div class="step-title">Submit Mint Request</div>
+                        <div class="step-desc">User clicks "Mint NFT". The transaction is sent on-chain to trigger the autonomous Risk Engines.</div>
+                    </div>
+                </div>
+                
+                <div class="step-node" id="step-6">
+                    <div class="step-number">6</div>
+                    <div class="step-content">
+                        <span class="tag">Funding</span>
+                        <div class="step-title">Receive USDC Funding</div>
+                        <div class="step-desc">The NFT acts as collateral for the Lending Pool. Once lenders fully fund the pool, USDC is sent to the borrower's wallet.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel: PROTOCOL UNDER THE HOOD -->
+        <div class="side-panel">
+            <div class="box side-box purple" id="node-system1">
+                <h4>UNDER THE HOOD: ORACLES</h4>
+                <div class="lender-step">
+                    <h5><div class="dot"></div>Gemini AI Guardian</h5>
+                    <p>Parses invoice JSON + uploaded docs to detect anomalies, flagging discrepancies in terms.</p>
+                </div>
+                <div class="lender-step">
+                    <h5><div class="dot"></div>Acurast TEE Engine</h5>
+                    <p>A secure off-chain enclave fetches live FX rates and computes Risk Tier and Interest Rate using historical data.</p>
+                </div>
+            </div>
+            
+            <div class="box side-box pink" id="node-system2">
+                <h4>UNDER THE HOOD: EVM</h4>
+                <div class="lender-step">
+                    <h5><div class="dot"></div>InvoiceNFT.sol</h5>
+                    <p>Verifies Oracle secp256k1 signatures and mints an ERC-721 token representing the legal debt.</p>
+                </div>
+                <div class="lender-step">
+                    <h5><div class="dot"></div>LendingPool.sol</h5>
+                    <p>Handles fractional USDC deposits from lenders and handles the release of funds to the borrower.</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Bottom Nodes (Lifecycle Outcomes) -->
+    <div class="bottom-nodes" id="node-outcomes">
+        
+        <div class="box outcome-node outcome-green" id="node-repay">
+            <div class="status-icon">✓</div>
+            <h3>1. Timely Repayment</h3>
+            <p>Borrower repays loan in USDC on or before maturity date. Smart contract distributes yield to lenders instantly.</p>
+        </div>
+        
+        <div class="box outcome-node outcome-yellow" id="node-alert">
+            <div class="status-icon">!</div>
+            <h3>2. Grace Period Warning</h3>
+            <p>If maturity date is reached without repayment, the borrower's dashboard turns red, and late notices are sent.</p>
+        </div>
+        
+        <div class="box outcome-node outcome-red" id="node-default">
+            <div class="status-icon">✗</div>
+            <h3>3. Formal Default</h3>
+            <p>If overdue > 7 days, lenders can call triggerDefault(). The Protocol Insurance Pool steps in to cover lender losses.</p>
+        </div>
+        
+    </div>
+
+</div>
+
+<script>
+    function drawLines() {
+        const svg = document.getElementById('connections');
+        // Clear old paths, keep markers
+        const defs = svg.querySelector('defs').outerHTML;
+        svg.innerHTML = defs;
+        
+        // Helper to get element centers and edges
+        const getBox = (el) => {
+            const rect = el.getBoundingClientRect();
+            return {
+                x: rect.left + rect.width / 2 + window.scrollX,
+                y: rect.top + rect.height / 2 + window.scrollY,
+                top: rect.top + window.scrollY,
+                bottom: rect.bottom + window.scrollY,
+                left: rect.left + window.scrollX,
+                right: rect.right + window.scrollX
+            };
+        };
+
+        const drawPath = (startX, startY, endX, endY, classes = 'path-line', marker = 'url(#arrow-gray)') => {
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            const midY = startY + (endY - startY) / 2;
+            const d = `M ${startX} ${startY} C ${startX} ${midY}, ${endX} ${midY}, ${endX} ${endY}`;
+            path.setAttribute('d', d);
+            path.setAttribute('class', classes);
+            if(marker) path.setAttribute('marker-end', marker);
+            svg.appendChild(path);
+        };
+        
+        const drawHorizontalPath = (startX, startY, endX, endY, classes = 'path-line') => {
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            const midX = startX + (endX - startX) / 2;
+            const d = `M ${startX} ${startY} C ${midX} ${startY}, ${midX} ${endY}, ${endX} ${endY}`;
+            path.setAttribute('d', d);
+            path.setAttribute('class', classes);
+            svg.appendChild(path);
+        };
+
+        // Old DOM labels (remove existing before recreating)
+        document.querySelectorAll('.floating-label').forEach(el => el.remove());
+        const addLabel = (text, top, left, z=20) => {
+            const labelHTML = `<div class="floating-label" style="top:${top}px; left:${left}px; z-index:${z};">${text}</div>`;
+            document.body.insertAdjacentHTML('beforeend', labelHTML);
+        };
+
+        const nodeTop = getBox(document.getElementById('node-top'));
+        const centerFlow = getBox(document.getElementById('node-center'));
+
+        // connection top to center
+        drawPath(nodeTop.x, nodeTop.bottom, centerFlow.x, centerFlow.top, 'path-line blue-glow', 'url(#arrow-blue)');
+        addLabel('ENTER WIZARD', nodeTop.bottom + 15, nodeTop.x - 45);
+
+        // Connections center to bottom nodes
+        const centerBottom = { x: centerFlow.x, y: centerFlow.bottom };
+        
+        addLabel('MATURITY CYCLE', centerFlow.bottom + 10, centerFlow.x - 55);
+
+        const nodeRepay = getBox(document.getElementById('node-repay'));
+        drawPath(centerBottom.x, centerBottom.y, nodeRepay.x, nodeRepay.top, 'path-line green-glow', 'url(#arrow-green)');
+
+        const nodeAlert = getBox(document.getElementById('node-alert'));
+        drawPath(centerBottom.x, centerBottom.y, nodeAlert.x, nodeAlert.top, 'path-line blue-glow', 'url(#arrow-blue)');
+        
+        const nodeDefault = getBox(document.getElementById('node-default'));
+        drawPath(centerBottom.x, centerBottom.y, nodeDefault.x, nodeDefault.top, 'path-line', 'url(#arrow-gray)');
+
+        // Side to Center interactions
+        const nodeLender = getBox(document.getElementById('node-lender'));
+        const step6 = getBox(document.getElementById('step-6'));
+        drawHorizontalPath(nodeLender.right, nodeLender.y, step6.left, step6.y, 'path-line green-glow');
+        addLabel('PROVIDES LIQUIDITY', step6.y - 12, nodeLender.right + 20, 10);
+
+        const nodeSystem1 = getBox(document.getElementById('node-system1'));
+        const step4 = getBox(document.getElementById('step-4'));
+        drawHorizontalPath(nodeSystem1.left, nodeSystem1.y, step4.right, step4.y, 'path-line');
+        addLabel('VERIFIES & PRICES', step4.y - 12, step4.right + 20, 10);
+    }
+
+    window.addEventListener('load', drawLines);
+    window.addEventListener('resize', drawLines);
+    setTimeout(drawLines, 200);
+</script>
+</body>
+</html>
